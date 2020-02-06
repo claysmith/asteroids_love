@@ -1,0 +1,6 @@
+<gui> 
+    <layout name="main" file="astbin/gui/main.xml" hide="true"/> 
+    <layout name="options" file="astbin/gui/options.xml" hide="true"/> 
+    <layout name="video" file="astbin/gui/video.xml" hide="true"/> 
+    <layout name="audio" file="astbin/gui/audio.xml" hide="true"/> 
+</gui>

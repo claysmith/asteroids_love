@@ -1,0 +1,17 @@
+<layout name="audio" x="0" y="0" width="200" height="150">  
+
+    <button x="0" y="0" width="200" height="50" fontname="astbin/font.ttf" fontheight="16" name="on" color="255;255;255;200" fontcolor="255;255;255;255" >
+        On
+    </button>
+    
+    <button x="0" y="50" width="200" height="50" fontname="astbin/font.ttf" fontheight="16" name="off" color="255;255;255;200" fontcolor="255;255;255;255" >
+        Off
+    </button>
+    
+    <button x="0" y="100" width="200" height="50" fontname="astbin/font.ttf" fontheight="16" name="back" color="255;255;255;200" fontcolor="255;255;255;255" >
+        Back
+    </button>    
+    
+</layout> 
+
+
