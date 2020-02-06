@@ -13,6 +13,8 @@ function love.load()
     ship.moving = false; 
 
     ship.currAnim = 1
+    ship.animSpeed = .1
+    ship.animTime = 0
     
     ship.angle = 0
     ship.angleRadians = 0
@@ -24,12 +26,14 @@ function love.load()
 
     love.window.setTitle("Love Asteroids")
 
+    font = love.graphics.newFont(14)
+    love.graphics.setFont(font)
 
 end
    
 function love.update(dt)
 
-    processShip()
+    processShip(dt)
 
 
 
@@ -64,7 +68,7 @@ function drawShip()
 
 end
 
-function processShip()
+function processShip(dt)
     if love.keyboard.isDown("left") then
         ship.angle = ship.angle - ship.turnAmount
     end
@@ -77,11 +81,22 @@ function processShip()
 
     if love.keyboard.isDown("up") then
         ship.moving = true
-        ship.currAnim = ship.currAnim + 1
 
-        if ship.currAnim > 3 then
-            ship.currAnim = 1
+        ship.animTime = ship.animTime + dt 
+
+        if ship.animTime > ship.animSpeed then
+
+            ship.currAnim = ship.currAnim + 1
+
+            if ship.currAnim > 3 then
+                ship.currAnim = 1
+            end
+
+            ship.animTime = 0
         end
+
+
+
     end
 
 
@@ -94,5 +109,7 @@ function drawAsteroids()
 end
 
 function drawScore()
+    love.graphics.print("Anim Time " .. ship.animTime, 0, 0)
+
 end
 
