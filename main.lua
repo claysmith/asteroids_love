@@ -16,6 +16,7 @@ end
 function love.load()
     screen_width = love.graphics.getWidth()
     screen_height = love.graphics.getHeight()
+    laserOnScreen = false
     
     level = 1
     score = 0
@@ -204,6 +205,7 @@ function processAsteroids(dt)
 end
 
 function processLasers(dt)
+    laserOnScreen = false
 
     if ship.numLasers > 0 then
 
@@ -215,6 +217,10 @@ function processLasers(dt)
         
             ship.lasers[i].x = ship.lasers[i].x  + vx*dt
             ship.lasers[i].y = ship.lasers[i].y + vy*dt
+
+            if boxBoxCollision(ship.lasers[i].x-ship.lasers[i].halfWidth, ship.lasers[i].y-ship.lasers[i].halfHeight, ship.lasers[i].w, ship.lasers[i].h,0,0,screen_width,screen_height) then
+                laserOnScreen = true
+            end
 
         end
  
@@ -235,6 +241,10 @@ function processShip(dt)
     --FIRE LASERS
     if love.keyboard.isDown("space") and spaceDown == false then --spacebar
     
+        if laserOnScreen == false then
+            ship.numLasers=0
+        end
+
         ci = ship.numLasers + 1
         print("CI " .. ci)
 
