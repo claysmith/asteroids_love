@@ -1,3 +1,17 @@
+require "collision"
+
+function drawRed()
+    love.graphics.setColor(1, 0, 0)
+end 
+
+function drawGreen()
+    love.graphics.setColor(0,1,0)
+end
+
+function drawNormal()
+    love.graphics.setColor(1, 1, 1)
+end 
+
 
 function love.load()
     screen_width = love.graphics.getWidth()
@@ -21,6 +35,20 @@ function love.load()
     ship.anim2 = love.graphics.newQuad(32,0,32,32,ship.animation:getDimensions())
     ship.anim3 = love.graphics.newQuad(64,0,32,32,ship.animation:getDimensions())
     ship.moving = false; 
+    ship.halfWidth = ship.stillimage:getWidth()/2 --is 16 here for both
+    ship.halfHeight = ship.stillimage:getHeight()/2
+    ship.w = ship.stillimage:getWidth()
+    ship.h = ship.stillimage:getHeight()
+
+    box1 = {}
+    box1.w = 100
+    box1.h = 50
+    box1.x = screen_width/2-box1.w/2
+    box1.y = screen_height/2-box1.h/2
+
+
+
+    --print("ship half width and height (" .. ship.halfWidth .. " " .. ship.halfHeight .. ")")
 
     ship.currAnim = 1
     ship.animSpeed = .1
@@ -45,11 +73,16 @@ function love.load()
         asteroids[i].y = math.random(0, screen_height)
         asteroids[i].imgnumber = math.random(1,3)
         asteroids[i].img = love.graphics.newImage("astbin/asteroid"..asteroids[i].imgnumber..".png") --pick random image from 1 to 3
-        asteroids[i].rotateLeft = math.random(1,2) == 2
-        asteroids[i].moveLeft = math.random(1,2) == 2
-        asteroids[i].moveUp = math.random(1,2) == 2
+        asteroids[i].headingAngle = math.random(0,360) --asteroid picks random angle and moves along it
+        asteroids[i].headingRadians = asteroids[i].headingAngle * math.pi/180
         asteroids[i].radians = 0
         asteroids[i].speed = math.random(20,30)
+        
+        asteroids[i].halfWidth = asteroids[i].img:getWidth()/2
+        asteroids[i].halfHeight = asteroids[i].img:getHeight()/2
+
+        asteroids[i].w = asteroids[i].img:getWidth()
+        asteroids[i].h = asteroids[i].img:getHeight()
 
     end 
 
@@ -72,7 +105,14 @@ function love.draw()
     drawAsteroids()
     drawShip()
     drawHUD()
+    --drawBox()
 end
+
+function drawBox()
+    love.graphics.rectangle("line", box1.x, box1.y, box1.w, box1.h)
+
+end
+
 
 function drawShip()
 
@@ -100,15 +140,46 @@ function drawShip()
        for i = 1, ship.numLasers
        do
           love.graphics.draw(ship.laserimg, ship.lasers[i].x, ship.lasers[i].y, ship.lasers[i].angleRadians+deg,1,1,ship.laserimg:getWidth()/2,ship.laserimg:getHeight()/2)
+       
+          love.graphics.rectangle("line", ship.lasers[i].x-ship.lasers[i].halfWidth, ship.lasers[i].y-ship.lasers[i].halfHeight, ship.lasers[i].w, ship.lasers[i].h)
+
        end
 
     end
 
+    if ship.collided then
+        drawRed()
+        love.graphics.rectangle("line", ship.x-ship.halfWidth, ship.y-ship.halfHeight, ship.w, ship.h)
+    else
+        drawNormal()
+        love.graphics.rectangle("line", ship.x-ship.halfWidth, ship.y-ship.halfHeight, ship.w, ship.h)
+    end
 
 end
 
+function wrapObjectToScreen(object)
+
+    if object.x > screen_width+object.halfWidth then
+        object.x = -object.halfWidth
+     end
+
+     if object.x < 0-object.halfWidth then
+        object.x = screen_width+object.halfWidth
+     end
+
+     if object.y > screen_height+object.halfHeight then
+        object.y = -object.halfHeight
+     end
+
+     if object.y < 0-object.halfHeight then
+        object.y = screen_height+object.halfHeight
+     end 
+end
+
+
 function processAsteroids(dt)
 
+    ship.collided=false
     for i = 0,numAsteroids
     do
        if asteroids[i].rotateLeft then
@@ -117,36 +188,17 @@ function processAsteroids(dt)
           asteroids[i].radians = asteroids[i].radians + 1*dt
        end
 
-       if asteroids[i].moveLeft then
-         asteroids[i].x = asteroids[i].x - asteroids[i].speed*dt
-       else
-         asteroids[i].x = asteroids[i].x + asteroids[i].speed*dt
+       vx = math.cos(asteroids[i].headingRadians)*asteroids[i].speed
+       vy = math.sin(asteroids[i].headingRadians)*asteroids[i].speed
+   
+       asteroids[i].x = asteroids[i].x  + vx*dt
+       asteroids[i].y = asteroids[i].y + vy*dt
+
+       wrapObjectToScreen(asteroids[i],width,height)
+
+       if boxBoxCollision(ship.x-ship.halfWidth, ship.y-ship.halfHeight,ship.w,ship.h,asteroids[i].x-asteroids[i].halfWidth,asteroids[i].y-asteroids[i].halfHeight,asteroids[i].w,asteroids[i].h) then
+          ship.collided=true
        end
-
-       if asteroids[i].moveUp then
-          asteroids[i].y = asteroids[i].y - asteroids[i].speed*dt
-       else
-          asteroids[i].y = asteroids[i].y + asteroids[i].speed*dt
-       end
-
-       width = asteroids[i].img:getWidth()/2
-       height = asteroids[i].img:getHeight()/2
-
-       if asteroids[i].x > screen_width+width then
-          asteroids[i].x = -width
-       end
-
-       if asteroids[i].x < 0-width then
-          asteroids[i].x = screen_width+width 
-       end
-
-       if asteroids[i].y > screen_height+height then
-          asteroids[i].y = -height
-       end
-
-       if asteroids[i].y < 0-height then
-          asteroids[i].y = screen_height+height
-       end  
 
     end
 end
@@ -180,6 +232,7 @@ function processShip(dt)
         ship.angle = ship.angle + ship.turnAmount
     end
 
+    --FIRE LASERS
     if love.keyboard.isDown("space") and spaceDown == false then --spacebar
     
         ci = ship.numLasers + 1
@@ -189,6 +242,11 @@ function processShip(dt)
         ship.lasers[ci].x = ship.x
         ship.lasers[ci].y = ship.y
         ship.lasers[ci].angleRadians = ship.angleRadians --impart x,y,radians to laser img 
+        ship.lasers[ci].w = ship.laserimg:getWidth()
+        ship.lasers[ci].h = ship.laserimg:getHeight()
+        ship.lasers[ci].halfWidth = ship.lasers[ci].w/2
+        ship.lasers[ci].halfHeight = ship.lasers[ci].h/2
+
 
         ship.numLasers = ship.numLasers+1
         spaceDown = true
@@ -224,6 +282,8 @@ function processShip(dt)
 
     ship.angleRadians = ship.angle * math.pi/180
 
+    ship.collided = false
+
     if ship.moving then
     
         vx = math.cos(ship.angleRadians)*ship.speed
@@ -231,6 +291,10 @@ function processShip(dt)
     
         ship.x = ship.x + vx*dt
         ship.y = ship.y + vy*dt
+
+        wrapObjectToScreen(ship)
+
+
     end
 
 end
@@ -240,6 +304,9 @@ function drawAsteroids()
     for i = 0,numAsteroids
     do
         love.graphics.draw(asteroids[i].img, asteroids[i].x, asteroids[i].y, asteroids[i].radians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
+    
+        love.graphics.rectangle("line", asteroids[i].x-asteroids[i].halfWidth, asteroids[i].y-asteroids[i].halfHeight, asteroids[i].w, asteroids[i].h)
+
     end
 
 end
