@@ -20,10 +20,10 @@ function circleXYCollision(pos,circle)
 end
 
 
-function boxXYCollision(point, box)
+function boxXYCollision(x,y, box)
 
-    if point.x > box.x and point.x < box.x + box.w then
-        if point.y > box.y and point.y < box.y + box.h then
+    if x > box.x and x < box.x + box.w then
+        if y > box.y and y < box.y + box.h then
             return true
         end 
     end
