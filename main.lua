@@ -170,7 +170,7 @@ function love.load()
     screen_height = love.graphics.getHeight()
     laserOnScreen = false
     
-    numAsteroidsStart = 100
+    numAsteroidsStart = 2
 
     level = 1
     score = 0
