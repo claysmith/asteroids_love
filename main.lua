@@ -16,7 +16,13 @@ function drawNormal()
     love.graphics.setColor(1, 1, 1)
 end 
 
+function setColor(obj,glowValue)
+    love.graphics.setColor(love.math.colorFromBytes(obj.r+glowValue, obj.g+glowValue, obj.b+glowValue))
+end
+
 function resetGame(levelUp)
+
+    waitTimeNextLevelCount = 0
 
     ship.collided=false
     ship.dead=false 
@@ -24,16 +30,70 @@ function resetGame(levelUp)
     ship.explodeAnimNdx = math.random(0,1)
     spaceDown = true --prevent fire laser on reset
 
-    if not levelUp then
+    if not levelUp then --player has died starting over from level 1
         level = 1
         score = 0
-        numAsteroids = 6
+        numAsteroids = numAsteroidsStart
+        initStars()
     end
 
     ship.x = love.graphics.getWidth()/2
     ship.y = love.graphics.getHeight()/2
 
+    for i = 1, ship.numLasers
+    do
+        ship.lasers[i].dead = true
+    end
+
     initAsteroids()
+end
+
+function initStars()
+    stars = {}
+    numStars = math.random(50,300)
+
+    for i = 0, numStars
+    do
+        stars[i] = {}
+
+        stars[i].x = math.random(0,screen_width)
+        stars[i].y = math.random(0,screen_height)
+        stars[i].radius = math.random(1,3)
+        stars[i].segments = 8
+        stars[i].r = math.random(0,255)
+        stars[i].g = math.random(0,255)
+        stars[i].b = math.random(0,255)
+        stars[i].glowValue = math.random(0,75) 
+        stars[i].glowStart = stars[i].glowValue
+        stars[i].glowDir = 0--math.random(0,1)
+
+        if stars[i].glowDir == 0 then
+            stars[i].glowDir = -1
+        elseif stars[i].glowDir == 1 then
+            stars[i].glowDir = 1
+        end
+
+    end
+end
+
+function processStars(dt)
+
+    for i = 0, numStars
+    do
+        stars[i].glowValue = stars[i].glowValue + stars[i].glowDir
+ 
+        if stars[i].glowDir == -1 then
+            if stars[i].glowValue == 0 then
+                stars[i].glowValue = stars[i].glowStart
+            end
+        elseif stars[i].glowDir == 1 then
+            if stars[i].glowValue == stars[i].glowStart then
+                stars[i].glowValue = 0
+            end
+        end
+
+    end
+
 end
 
 function initAsteroids()
@@ -50,7 +110,7 @@ function initAsteroids()
         asteroids[i].headingAngle = math.random(0,360) --asteroid picks random angle and moves along it
         asteroids[i].headingRadians = asteroids[i].headingAngle * math.pi/180
         asteroids[i].radians = 0
-        asteroids[i].speed = math.random(20,30)
+        asteroids[i].speed = math.random(20,100)
         
         asteroids[i].halfWidth = asteroids[i].img:getWidth()/2
         asteroids[i].halfHeight = asteroids[i].img:getHeight()/2
@@ -70,7 +130,7 @@ function initAsteroids()
         asteroids[i].explode[0].anim6 = love.graphics.newQuad(160,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
         asteroids[i].explode[0].anim7 = love.graphics.newQuad(192,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
         asteroids[i].explode[0].animSpeed = .1
-        asteroids[i].explode[0].animDone = false
+        --asteroids[i].explode[0].animDone = false
     
         asteroids[i].explode[1] = {}
         asteroids[i].explode[1].fullanim = love.graphics.newImage("astbin/ship/explosion2.png")
@@ -82,11 +142,12 @@ function initAsteroids()
         asteroids[i].explode[1].anim6 = love.graphics.newQuad(160,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
         asteroids[i].explode[1].anim7 = love.graphics.newQuad(192,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
         asteroids[i].explode[1].animSpeed = .1
-        asteroids[i].explode[1].animDone = false
+        --asteroids[i].explode[1].animDone = false
     
         asteroids[i].explodeAnimTime = 0
         asteroids[i].explodeAnimNdx = math.random(0,1)
         asteroids[i].explodeAnim = 1
+        asteroids[i].exploding = false
 
     end 
 end
@@ -97,9 +158,13 @@ function love.load()
     screen_height = love.graphics.getHeight()
     laserOnScreen = false
     
+    numAsteroidsStart = 3
+
     level = 1
     score = 0
-    numAsteroids = 6
+    numAsteroids = numAsteroidsStart
+    waitTimeNextLevel = .7
+    waitTimeNextLevelCount = 0
 
     math.randomseed(os.time())
 
@@ -127,7 +192,7 @@ function love.load()
     ship.explode[0].anim6 = love.graphics.newQuad(160,0,32,32,ship.explode[0].fullanim:getDimensions())
     ship.explode[0].anim7 = love.graphics.newQuad(192,0,32,32,ship.explode[0].fullanim:getDimensions())
     ship.explode[0].animSpeed = .1
-    ship.explode[0].animDone = false
+    --ship.explode[0].animDone = false
 
     ship.explode[1] = {}
     ship.explode[1].fullanim = love.graphics.newImage("astbin/ship/explosion2.png")
@@ -139,7 +204,7 @@ function love.load()
     ship.explode[1].anim6 = love.graphics.newQuad(160,0,32,32,ship.explode[1].fullanim:getDimensions())
     ship.explode[1].anim7 = love.graphics.newQuad(192,0,32,32,ship.explode[1].fullanim:getDimensions())
     ship.explode[1].animSpeed = .1
-    ship.explode[1].animDone = false
+    --ship.explode[1].animDone = false
 
     ship.explodeAnimTime = 0
     ship.explodeAnimNdx = math.random(0,1)
@@ -169,6 +234,7 @@ function love.load()
     ship.laserimg = love.graphics.newImage("astbin/ship/laser.png")
 
     initAsteroids() 
+    initStars()
 
     love.window.setTitle("Love Asteroids")
 
@@ -181,13 +247,18 @@ end
 
    
 function love.update(dt)
+    if love.keyboard.isDown("escape") then
+        love.event.quit()
+    end
 
+    processStars(dt)
     processShip(dt)
     processLasers(dt)
     processAsteroids(dt)
 end
   
 function love.draw()
+    drawStars()
     drawAsteroids()
     drawShip()
     drawHUD()
@@ -218,7 +289,7 @@ function drawShip()
 
         elseif ship.explodeAnim == 7 then
             love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim7,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
-            ship.explode[ship.explodeAnimNdx].animDone = true
+            --ship.explode[ship.explodeAnimNdx].animDone = true
         end
 
     else
@@ -286,7 +357,7 @@ function processAsteroids(dt)
 
     ship.collided=false
     numHit = 0
-
+    exploding = false 
 
     for i = 0,numAsteroids
     do
@@ -323,14 +394,25 @@ function processAsteroids(dt)
              end
         end
 
+        if asteroids[i].exploding then
+            exploding = true
+        end
+
     end
 
     --increase level
-    if numHit == numAsteroids+1 then -- all asteroids have been hit
-        level = level + 1 -- increase level
-        numAsteroids = numAsteroids + 4 -- add five more asteroids than previous
+    if numHit == numAsteroids+1 then -- all asteroids have been hit and none are exploding
+        
+        waitTimeNextLevelCount = waitTimeNextLevelCount+dt
+        
+        if waitTimeNextLevelCount > waitTimeNextLevel then --wait for last explosion
+            level = level + 1 -- increase level
+            numAsteroids = numAsteroids + 4 -- add five more asteroids than previous
+    
+            resetGame(true)
+        end
 
-        resetGame(true)
+
     end
 
 end
@@ -357,8 +439,8 @@ function processLasers(dt)
     
                 for j = 0,numAsteroids
                 do
-                    --if boxXYCollision(ship.lasers[i].x,ship.lasers[i].y,asteroids[j]) then
-                    if boxBoxCollision(ship.lasers[i].x,ship.lasers[i].y,ship.lasers[i].w,ship.lasers[i].h,asteroids[j].x,asteroids[j].y,asteroids[j].w,asteroids[j].h) and not asteroids[j].dead then
+                    --if laser collided with an asteroid
+                    if boxBoxCollision(ship.lasers[i].x-ship.lasers[i].halfWidth,ship.lasers[i].y-ship.lasers[i].halfHeight,ship.lasers[i].w,ship.lasers[i].h,asteroids[j].x,asteroids[j].y,asteroids[j].w,asteroids[j].h) and not asteroids[j].dead and not asteroids[j].exploding then--and asteroids[j].explode[asteroids[j].explodeAnimNdx].animDone == false then
                         asteroids[j].hit = true
                         ship.lasers[i].dead = true
                         score = score + 5
@@ -479,36 +561,30 @@ function drawAsteroids()
         if asteroids[i].hit then
 
             if asteroids[i].explodeAnim == 1 then
+                asteroids[i].exploding = true 
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim1,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
     
             elseif asteroids[i].explodeAnim == 2 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim2,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim2,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
 
             elseif asteroids[i].explodeAnim == 3 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim3,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim3,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
 
             elseif asteroids[i].explodeAnim == 4 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim4,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim4,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
 
             elseif asteroids[i].explodeAnim == 5 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim5,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim5,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
 
             elseif asteroids[i].explodeAnim == 6 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim6,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim6,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
 
             elseif asteroids[i].explodeAnim == 7 then
-                --love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim7,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
-                --ship.explode[ship.explodeAnimNdx].animDone = true
                 love.graphics.draw(asteroids[i].explode[asteroids[i].explodeAnimNdx].fullanim, asteroids[i].explode[ship.explodeAnimNdx].anim7,asteroids[i].x, asteroids[i].y, asteroids[i].angleRadians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
-                asteroids[i].explode[asteroids[i].explodeAnimNdx].animDone = true
+                --asteroids[i].explode[asteroids[i].explodeAnimNdx].animDone = true
                 asteroids[i].x = -100 --cheap hack to prevent lasers hitting dead asteroids, by moving it off the screen
                 asteroids[i].y = -100
-
+                asteroids[i].exploding = false
             end
         else
             love.graphics.draw(asteroids[i].img, asteroids[i].x, asteroids[i].y, asteroids[i].radians,1,1,asteroids[i].img:getWidth()/2,asteroids[i].img:getHeight()/2)
@@ -522,21 +598,47 @@ function drawAsteroids()
 end
 
 function drawHUD() --font display info
+    drawRed()
+
     love.graphics.print("Level: " .. level, 0, 0)
-    love.graphics.print("Score: " .. score, screen_width-75, 0)
+    love.graphics.print("Score: " .. score, screen_width-100, 0)
 
     if ship.dead then
-        drawRed()
         love.graphics.print("You have died! Press space bar to respawn", screen_width/2-175, screen_height/2)
-        drawNormal()
+    end
+    
+    --exploding = false 
+    for i = 0,numAsteroids
+    do 
+        str = ""
+        if exploding then
+            str = "Yes"
+        else
+            str = "No"
+        end
+
+        --love.graphics.print("Exploding is " .. str, 0, 25)
     end
 
+    drawNormal()
 
-    --love.graphics.print("Angle: " .. ship.angle .. " Radians: " .. ship.angleRadians, 0, 25)
+
 end
 
 function love.keyreleased(key)
     if key == "space" then
        spaceDown = false
     end
+ end
+
+ function drawStars()
+
+    for i = 0, numStars
+    do
+        setColor(stars[i],stars[i].glowValue)
+        love.graphics.circle("fill", stars[i].x, stars[i].y, stars[i].radius, stars[i].segments) 
+
+    end
+ 
+    drawNormal()
  end

@@ -1,0 +1,2 @@
+1. on new level, don't spawn asteroids where player is
+2. make laser more accurate?
