@@ -65,15 +65,15 @@ function initStars()
         stars[i].r = math.random(0,255)
         stars[i].g = math.random(0,255)
         stars[i].b = math.random(0,255)
-        stars[i].glowValue = math.random(0,75) 
+        stars[i].glowValue = math.random(75,100) 
         stars[i].glowStart = stars[i].glowValue
-        stars[i].glowDir = 0--math.random(0,1)
+        stars[i].glowDir = -1--math.random(0,1)
 
-        if stars[i].glowDir == 0 then
-            stars[i].glowDir = -1
-        elseif stars[i].glowDir == 1 then
-            stars[i].glowDir = 1
-        end
+        --if stars[i].glowDir == 0 then
+        --    stars[i].glowDir = -1
+        --elseif stars[i].glowDir == 1 then
+        --    stars[i].glowDir = 1
+        --end
 
     end
 end
@@ -86,11 +86,11 @@ function processStars(dt)
  
         if stars[i].glowDir == -1 then
             if stars[i].glowValue == 0 then
-                stars[i].glowValue = stars[i].glowStart
+                stars[i].glowDir = 1
             end
         elseif stars[i].glowDir == 1 then
             if stars[i].glowValue == stars[i].glowStart then
-                stars[i].glowValue = 0
+                stars[i].glowDir = -1
             end
         end
 
