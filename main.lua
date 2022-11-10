@@ -487,7 +487,7 @@ function processShip(dt)
             ship.explodeAnimTime = 0
         end
 
-        if love.keyboard.isDown("space") then
+        if love.keyboard.isDown("return", "kpenter") then
             resetGame(false)
         end
 
@@ -622,7 +622,7 @@ function drawHUD() --font display info
     love.graphics.print("Score: " .. score, screen_width-100, 0)
 
     if ship.dead then
-        love.graphics.print("You have died! Press space bar to respawn", screen_width/2-175, screen_height/2)
+        love.graphics.print("You have died! Press enter key to respawn", screen_width/2-175, screen_height/2)
     end
     
     --love.graphics.rectangle("line", shipProtectBox.x, shipProtectBox.y, shipProtectBox.w, shipProtectBox.h)
