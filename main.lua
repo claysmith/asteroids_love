@@ -458,7 +458,7 @@ function processLasers(dt)
                 for j = 0,numAsteroids
                 do
                     --if laser collided with an asteroid
-                    if boxBoxCollision(ship.lasers[i].x-ship.lasers[i].halfWidth,ship.lasers[i].y-ship.lasers[i].halfHeight,ship.lasers[i].w,ship.lasers[i].h,asteroids[j].x,asteroids[j].y,asteroids[j].w,asteroids[j].h) and not asteroids[j].dead and not asteroids[j].exploding then--and asteroids[j].explode[asteroids[j].explodeAnimNdx].animDone == false then
+                    if boxBoxCollision(ship.lasers[i].x-ship.lasers[i].halfWidth,ship.lasers[i].y-ship.lasers[i].halfHeight,ship.lasers[i].w,ship.lasers[i].h,asteroids[j].x-asteroids[j].halfWidth,asteroids[j].y-asteroids[j].halfHeight,asteroids[j].w,asteroids[j].h) and not asteroids[j].dead and not asteroids[j].exploding then--and asteroids[j].explode[asteroids[j].explodeAnimNdx].animDone == false then
                         asteroids[j].hit = true
                         ship.lasers[i].dead = true
                         score = score + 5
