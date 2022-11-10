@@ -35,6 +35,8 @@ function resetGame(levelUp)
         score = 0
         numAsteroids = numAsteroidsStart
         initStars()
+    elseif levelUp then
+        score = score + (50 * level)
     end
 
     ship.x = love.graphics.getWidth()/2
@@ -96,60 +98,70 @@ function processStars(dt)
 
 end
 
+function InitAsteroid(asteroid)
+    asteroid.hit = false
+    asteroid.x = math.random(0,screen_width)
+    asteroid.y = math.random(0, screen_height)
+    asteroid.imgnumber = math.random(1,3)
+    asteroid.img = love.graphics.newImage("astbin/asteroid"..asteroid.imgnumber..".png") --pick random image from 1 to 3
+    asteroid.headingAngle = math.random(0,360) --asteroid picks random angle and moves along it
+    asteroid.headingRadians = asteroid.headingAngle * math.pi/180
+    asteroid.radians = 0
+    asteroid.speed = math.random(20,100)
+    
+    asteroid.halfWidth = asteroid.img:getWidth()/2
+    asteroid.halfHeight = asteroid.img:getHeight()/2
+
+    asteroid.w = asteroid.img:getWidth()
+    asteroid.h = asteroid.img:getHeight()
+
+    --asteroids explode animation
+    asteroid.explode = {}
+    asteroid.explode[0] = {}
+    asteroid.explode[0].fullanim = love.graphics.newImage("astbin/ship/explosion.png")
+    asteroid.explode[0].anim1 = love.graphics.newQuad(0,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim2 = love.graphics.newQuad(32,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim3 = love.graphics.newQuad(64,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim4 = love.graphics.newQuad(96,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim5 = love.graphics.newQuad(128,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim6 = love.graphics.newQuad(160,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].anim7 = love.graphics.newQuad(192,0,32,32,asteroid.explode[0].fullanim:getDimensions())
+    asteroid.explode[0].animSpeed = .1
+    --asteroids[i].explode[0].animDone = false
+
+    asteroid.explode[1] = {}
+    asteroid.explode[1].fullanim = love.graphics.newImage("astbin/ship/explosion2.png")
+    asteroid.explode[1].anim1 = love.graphics.newQuad(0,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim2 = love.graphics.newQuad(32,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim3 = love.graphics.newQuad(64,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim4 = love.graphics.newQuad(96,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim5 = love.graphics.newQuad(128,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim6 = love.graphics.newQuad(160,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].anim7 = love.graphics.newQuad(192,0,32,32,asteroid.explode[1].fullanim:getDimensions())
+    asteroid.explode[1].animSpeed = .1
+    --asteroids[i].explode[1].animDone = false
+
+    asteroid.explodeAnimTime = 0
+    asteroid.explodeAnimNdx = math.random(0,1)
+    asteroid.explodeAnim = 1
+    asteroid.exploding = false
+end
+
 function initAsteroids()
     asteroids = {} --array of asteroids
 
     for i = 0,numAsteroids 
     do 
         asteroids[i] = {}
-        asteroids[i].hit = false
-        asteroids[i].x = math.random(0,screen_width)
-        asteroids[i].y = math.random(0, screen_height)
-        asteroids[i].imgnumber = math.random(1,3)
-        asteroids[i].img = love.graphics.newImage("astbin/asteroid"..asteroids[i].imgnumber..".png") --pick random image from 1 to 3
-        asteroids[i].headingAngle = math.random(0,360) --asteroid picks random angle and moves along it
-        asteroids[i].headingRadians = asteroids[i].headingAngle * math.pi/180
-        asteroids[i].radians = 0
-        asteroids[i].speed = math.random(20,100)
-        
-        asteroids[i].halfWidth = asteroids[i].img:getWidth()/2
-        asteroids[i].halfHeight = asteroids[i].img:getHeight()/2
+        InitAsteroid(asteroids[i])
 
-        asteroids[i].w = asteroids[i].img:getWidth()
-        asteroids[i].h = asteroids[i].img:getHeight()
-
-        --asteroids explode animation
-        asteroids[i].explode = {}
-        asteroids[i].explode[0] = {}
-        asteroids[i].explode[0].fullanim = love.graphics.newImage("astbin/ship/explosion.png")
-        asteroids[i].explode[0].anim1 = love.graphics.newQuad(0,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim2 = love.graphics.newQuad(32,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim3 = love.graphics.newQuad(64,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim4 = love.graphics.newQuad(96,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim5 = love.graphics.newQuad(128,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim6 = love.graphics.newQuad(160,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].anim7 = love.graphics.newQuad(192,0,32,32,asteroids[i].explode[0].fullanim:getDimensions())
-        asteroids[i].explode[0].animSpeed = .1
-        --asteroids[i].explode[0].animDone = false
-    
-        asteroids[i].explode[1] = {}
-        asteroids[i].explode[1].fullanim = love.graphics.newImage("astbin/ship/explosion2.png")
-        asteroids[i].explode[1].anim1 = love.graphics.newQuad(0,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim2 = love.graphics.newQuad(32,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim3 = love.graphics.newQuad(64,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim4 = love.graphics.newQuad(96,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim5 = love.graphics.newQuad(128,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim6 = love.graphics.newQuad(160,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].anim7 = love.graphics.newQuad(192,0,32,32,asteroids[i].explode[1].fullanim:getDimensions())
-        asteroids[i].explode[1].animSpeed = .1
-        --asteroids[i].explode[1].animDone = false
-    
-        asteroids[i].explodeAnimTime = 0
-        asteroids[i].explodeAnimNdx = math.random(0,1)
-        asteroids[i].explodeAnim = 1
-        asteroids[i].exploding = false
-
+        --reinit if this asteroids collides with the ship
+        while(boxBoxCollision(shipProtectBox.x, shipProtectBox.y,shipProtectBox.w,shipProtectBox.h,asteroids[i].x-asteroids[i].halfWidth,asteroids[i].y-asteroids[i].halfHeight,asteroids[i].w,asteroids[i].h))
+        do 
+            InitAsteroid(asteroids[i])
+        end
     end 
+
 end
 
 
@@ -158,7 +170,7 @@ function love.load()
     screen_height = love.graphics.getHeight()
     laserOnScreen = false
     
-    numAsteroidsStart = 3
+    numAsteroidsStart = 100
 
     level = 1
     score = 0
@@ -169,6 +181,12 @@ function love.load()
     math.randomseed(os.time())
 
     deg = 90* math.pi/180 --rotate ship image 90 degrees
+
+    shipProtectBox = {}
+    shipProtectBox.x = love.graphics.getWidth()/2 - 250/2
+    shipProtectBox.y = love.graphics.getHeight()/2 - 250/2
+    shipProtectBox.w = 250
+    shipProtectBox.h = 250
 
     ship = {}
     ship.x = love.graphics.getWidth()/2
@@ -607,6 +625,8 @@ function drawHUD() --font display info
         love.graphics.print("You have died! Press space bar to respawn", screen_width/2-175, screen_height/2)
     end
     
+    --love.graphics.rectangle("line", shipProtectBox.x, shipProtectBox.y, shipProtectBox.w, shipProtectBox.h)
+
     --exploding = false 
     for i = 0,numAsteroids
     do 
