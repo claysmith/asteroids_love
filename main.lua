@@ -169,13 +169,17 @@ function love.load()
     screen_width = love.graphics.getWidth()
     screen_height = love.graphics.getHeight()
     laserOnScreen = false
+
+    laserSound = love.audio.newSource("astbin/ship/laser.wav","static")
+    explosionSound = love.audio.newSource("astbin/explosion.wav","static")
+
     
     numAsteroidsStart = 2
 
     level = 1
     score = 0
     numAsteroids = numAsteroidsStart
-    waitTimeNextLevel = .7
+    waitTimeNextLevel = .8
     waitTimeNextLevelCount = 0
 
     math.randomseed(os.time())
@@ -289,6 +293,8 @@ function drawShip()
 
         if ship.explodeAnim == 1 then
             love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim1,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
+            explosionSound:stop()
+            explosionSound:play()
 
         elseif ship.explodeAnim == 2 then
             love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim2,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
@@ -410,6 +416,7 @@ function processAsteroids(dt)
                 ship.collided=true
                 ship.dead=true
              end
+
         end
 
         if asteroids[i].exploding then
@@ -462,6 +469,9 @@ function processLasers(dt)
                         asteroids[j].hit = true
                         ship.lasers[i].dead = true
                         score = score + 5
+
+                        explosionSound:stop()
+                        explosionSound:play()
                     end
                 end
     
@@ -481,7 +491,7 @@ function processShip(dt)
         ship.explodeAnimTime = ship.explodeAnimTime + dt
 
         if ship.explodeAnimTime > ship.explode[ship.explodeAnimNdx].animSpeed then
-
+            --xplosionSound:stop()
             ship.explodeAnim = ship.explodeAnim + 1
 
             ship.explodeAnimTime = 0
@@ -502,6 +512,10 @@ function processShip(dt)
     
         --FIRE LASERS
         if love.keyboard.isDown("space") and spaceDown == false then --spacebar
+        
+            --sfx
+            laserSound:stop()
+            laserSound:play()
         
             if laserOnScreen == false then
                 ship.numLasers=0
