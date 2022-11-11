@@ -266,11 +266,14 @@ function love.load()
 
     spaceDown = false
     sDown = false
+    pDown = false 
+    paused = false
 end
 
 
    
 function love.update(dt)
+
     if love.keyboard.isDown("escape") then
         love.event.quit()
     end
@@ -280,10 +283,18 @@ function love.update(dt)
         sDown = true 
     end
 
-    processStars(dt)
-    processShip(dt)
-    processLasers(dt)
-    processAsteroids(dt)
+    if love.keyboard.isDown("p") and pDown == false then
+        paused = not paused
+        pDown = true
+    end
+
+    if not paused then
+        processStars(dt)
+        processShip(dt)
+        processLasers(dt)
+        processAsteroids(dt)
+    end
+
 end
   
 function love.draw()
@@ -658,6 +669,11 @@ function drawHUD() --font display info
     else
         love.graphics.print(" - Sound Off", 60,0)
     end
+
+    if paused then 
+        love.graphics.print("Paused", screen_width/2-50, screen_height/2)
+    else
+    end
     
     --love.graphics.rectangle("line", shipProtectBox.x, shipProtectBox.y, shipProtectBox.w, shipProtectBox.h)
 
@@ -685,6 +701,9 @@ function love.keyreleased(key)
     end
     if key == "s" then 
         sDown = false 
+    end
+    if key == "p" then
+        pDown = false
     end
  end
 
