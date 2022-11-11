@@ -173,7 +173,8 @@ function love.load()
     laserSound = love.audio.newSource("astbin/ship/laser.wav","static")
     explosionSound = love.audio.newSource("astbin/explosion.wav","static")
 
-    
+    soundOn = true
+
     numAsteroidsStart = 2
 
     level = 1
@@ -264,6 +265,7 @@ function love.load()
     love.graphics.setFont(font)
 
     spaceDown = false
+    sDown = false
 end
 
 
@@ -271,6 +273,11 @@ end
 function love.update(dt)
     if love.keyboard.isDown("escape") then
         love.event.quit()
+    end
+
+    if love.keyboard.isDown("s") and sDown == false then
+        soundOn = not soundOn
+        sDown = true 
     end
 
     processStars(dt)
@@ -293,9 +300,11 @@ function drawShip()
 
         if ship.explodeAnim == 1 then
             love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim1,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
-            explosionSound:stop()
-            explosionSound:play()
-
+            
+            if soundOn then
+                explosionSound:stop()
+                explosionSound:play()
+            end
         elseif ship.explodeAnim == 2 then
             love.graphics.draw(ship.explode[ship.explodeAnimNdx].fullanim, ship.explode[ship.explodeAnimNdx].anim2,ship.x, ship.y, ship.angleRadians+deg,1,1,ship.stillimage:getWidth()/2,ship.stillimage:getHeight()/2)
 
@@ -470,8 +479,11 @@ function processLasers(dt)
                         ship.lasers[i].dead = true
                         score = score + 5
 
-                        explosionSound:stop()
-                        explosionSound:play()
+                        if soundOn then
+                            explosionSound:stop()
+                            explosionSound:play()
+                        end
+
                     end
                 end
     
@@ -514,9 +526,11 @@ function processShip(dt)
         if love.keyboard.isDown("space") and spaceDown == false then --spacebar
         
             --sfx
-            laserSound:stop()
-            laserSound:play()
-        
+            if soundOn then
+                laserSound:stop()
+                laserSound:play()
+            end
+
             if laserOnScreen == false then
                 ship.numLasers=0
             end
@@ -638,6 +652,12 @@ function drawHUD() --font display info
     if ship.dead then
         love.graphics.print("You have died! Press enter key to respawn", screen_width/2-175, screen_height/2)
     end
+
+    if soundOn then
+        love.graphics.print(" - Sound On", 60,0)
+    else
+        love.graphics.print(" - Sound Off", 60,0)
+    end
     
     --love.graphics.rectangle("line", shipProtectBox.x, shipProtectBox.y, shipProtectBox.w, shipProtectBox.h)
 
@@ -662,6 +682,9 @@ end
 function love.keyreleased(key)
     if key == "space" then
        spaceDown = false
+    end
+    if key == "s" then 
+        sDown = false 
     end
  end
 
