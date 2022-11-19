@@ -37,6 +37,8 @@ function resetGame(levelUp)
         initStars()
     elseif levelUp then
         score = score + (50 * level)
+        level = level + 1 -- increase level
+        numAsteroids = numAsteroids + 4 -- add five more asteroids than previous
     end
 
     ship.x = love.graphics.getWidth()/2
@@ -145,6 +147,8 @@ function InitAsteroid(asteroid)
     asteroid.explodeAnimNdx = math.random(0,1)
     asteroid.explodeAnim = 1
     asteroid.exploding = false
+
+    asteroid.rotateLeft = math.random(1,2) == 2
 end
 
 function initAsteroids()
@@ -166,6 +170,7 @@ end
 
 
 function love.load()
+    love.window.setMode(1000, 800, {resizable=false, vsync=0, minwidth=400, minheight=300})
     screen_width = love.graphics.getWidth()
     screen_height = love.graphics.getHeight()
     laserOnScreen = false
@@ -173,7 +178,7 @@ function love.load()
     laserSound = love.audio.newSource("astbin/ship/laser.wav","static")
     explosionSound = love.audio.newSource("astbin/explosion.wav","static")
 
-    soundOn = true
+    soundOn = false
 
     numAsteroidsStart = 2
 
@@ -248,7 +253,7 @@ function love.load()
     
     ship.angle = 270
     ship.angleRadians = 0
-    ship.turnAmount = 5
+    ship.turnAmount = 300
     ship.speed = 80
     ship.numLasers = 0
     ship.laserSpeed = 80 * 5
@@ -450,10 +455,7 @@ function processAsteroids(dt)
         
         waitTimeNextLevelCount = waitTimeNextLevelCount+dt
         
-        if waitTimeNextLevelCount > waitTimeNextLevel then --wait for last explosion
-            level = level + 1 -- increase level
-            numAsteroids = numAsteroids + 4 -- add five more asteroids than previous
-    
+        if waitTimeNextLevelCount > waitTimeNextLevel then --wait for last explosion  
             resetGame(true)
         end
 
@@ -526,11 +528,11 @@ function processShip(dt)
 
     else
         if love.keyboard.isDown("left") then
-            ship.angle = ship.angle - ship.turnAmount
+            ship.angle = ship.angle - ship.turnAmount*dt
         end
         
         if love.keyboard.isDown("right") then
-            ship.angle = ship.angle + ship.turnAmount
+            ship.angle = ship.angle + ship.turnAmount*dt
         end
     
         --FIRE LASERS
